@@ -1,5 +1,4 @@
 import {Flex} from 'grid-emotion';
-import {hot} from 'react-hot-loader';
 import React from 'react';
 import styled from 'react-emotion';
 
@@ -9,12 +8,14 @@ import HealthNavigationMenu from 'app/views/organizationHealth/healthNavigationM
 import MultipleEnvironmentSelector from 'app/components/organizations/multipleEnvironmentSelector';
 import MultipleProjectSelector from 'app/components/organizations/multipleProjectSelector';
 import TimeRangeSelector from 'app/components/organizations/timeRangeSelector';
+import space from 'app/styles/space';
 import withOrganization from 'app/utils/withOrganization';
 
 class OrganizationHealth extends React.Component {
   render() {
     let {organization, children} = this.props;
     let projects = organization.projects.filter(projects => projects.isMember);
+
     return (
       <Feature feature={['health']} showNoFeatureMessage>
         <HealthWrapper>
@@ -35,7 +36,7 @@ class OrganizationHealth extends React.Component {
   }
 }
 
-export default hot(module)(withOrganization(OrganizationHealth));
+export default withOrganization(OrganizationHealth);
 
 const HealthWrapper = styled(Flex)`
   flex: 1;
@@ -53,4 +54,5 @@ const Header = styled(Flex)`
 
 const Body = styled('div')`
   flex: 1;
+  padding: ${space(3)};
 `;

@@ -751,7 +751,7 @@ function routes() {
             <Route
               path="errors"
               componentPromise={() =>
-                import(/*webpackChunkName: HealthErrors*/ './views/organizationHealth/overview')}
+                import(/*webpackChunkName: HealthErrors*/ './views/organizationHealth/errors')}
               component={errorHandler(LazyLoad)}
             />
 
