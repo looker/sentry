@@ -14,6 +14,7 @@ export const PanelTable = styled(
       showRowTotal: PropTypes.bool,
       showColumnTotal: PropTypes.bool,
       shadeRowPercentage: PropTypes.bool,
+      getValue: PropTypes.func,
       renderHeader: PropTypes.func,
       renderBody: PropTypes.func,
       renderHeaderCell: PropTypes.func,
@@ -27,10 +28,10 @@ export const PanelTable = styled(
         </PanelTableHeader>
       );
 
-      const defaultRenderBody = ({widths, dataWithTotals, renderRow, ...props}) =>
-        dataWithTotals.map((row, rowIndex) => {
+      const defaultRenderBody = ({widths, data, dataWithTotals, renderRow, ...props}) =>
+        data.map((row, rowIndex) => {
           let lastCellIndex = row.length - 1;
-          let lastRowIndex = dataWithTotals.length - 1;
+          let lastRowIndex = data.length - 1;
           let isLastRow = rowIndex === lastRowIndex;
           let showBar = !isLastRow;
 
@@ -38,8 +39,8 @@ export const PanelTable = styled(
             <PanelTableRow
               key={rowIndex}
               showBar={showBar}
-              value={dataWithTotals[rowIndex][lastCellIndex]}
-              total={dataWithTotals[lastRowIndex][lastCellIndex]}
+              value={dataWithTotals[rowIndex][lastCellIndex + 1]}
+              total={dataWithTotals[lastRowIndex + 1][lastCellIndex + 1]}
               widths={widths}
             >
               {renderRow({
@@ -65,12 +66,24 @@ export const PanelTable = styled(
           return renderCell(renderCellProps);
         });
 
-      const defaultRenderCell = ({
-        isHeader,
-        renderHeaderCell,
-        renderItemCell,
-        ...props
-      }) => (isHeader ? renderHeaderCell(props) : renderItemCell(props));
+      const defaultRenderCell = p => {
+        let {
+          isHeader,
+          justify,
+          width,
+          rowIndex,
+          columnIndex,
+          renderHeaderCell,
+          renderItemCell,
+        } = p;
+
+        return (
+          <Cell justify={justify} width={width} key={`${rowIndex}-${columnIndex}`}>
+            {isHeader ? renderHeaderCell(p) : renderItemCell(p)}
+          </Cell>
+        );
+      };
+
       const defaultRenderItemCell = ({
         isHeader,
         justify,
@@ -78,14 +91,11 @@ export const PanelTable = styled(
         width,
         rowIndex,
         columnIndex,
-      }) => (
-        <Cell justify={justify} width={width} key={`${rowIndex}-${columnIndex}`}>
-          {value}
-        </Cell>
-      );
+      }) => value;
       const defaultRenderHeaderCell = defaultRenderItemCell;
 
       return {
+        getValue: i => i,
         renderHeader: defaultRenderHeader,
         renderBody: defaultRenderBody,
         renderRow: defaultRenderRow,
@@ -97,9 +107,10 @@ export const PanelTable = styled(
 
     // TODO(billy): memoize?
     getRowsWithTotals(rows) {
+      const {getValue, showColumnTotal} = this.props;
       const totalRows = rows.length;
       const totalColumns = !!rows.length ? rows[0].length : 0;
-      const reduceSum = (sum, val) => (sum += val);
+      const reduceSum = (sum, val) => (sum += getValue(val));
 
       let columnTotals = [];
       // deep clone rows
@@ -109,7 +120,7 @@ export const PanelTable = styled(
         newRows[i].push(rows[i].slice(1).reduce(reduceSum, 0));
 
         for (let j = 1; j < totalColumns; j++) {
-          columnTotals[j - 1] = (columnTotals[j - 1] || 0) + rows[i][j];
+          columnTotals[j - 1] = (columnTotals[j - 1] || 0) + getValue(rows[i][j]);
         }
       }
 
@@ -122,6 +133,7 @@ export const PanelTable = styled(
         className,
         children,
         data,
+        getValue,
         showRowTotal,
         showColumnTotal,
         shadeRowPercentage,
@@ -141,6 +153,7 @@ export const PanelTable = styled(
       let isRenderProp = typeof children === 'function';
       let renderProps = {
         data,
+        getValue,
         showRowTotal,
         showColumnTotal,
         shadeRowPercentage,

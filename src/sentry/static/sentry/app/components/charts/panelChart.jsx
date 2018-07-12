@@ -64,6 +64,7 @@ const PanelChart = styled(
   }
 )`
   flex: 1;
+  overflow: hidden;
 `;
 
 export default PanelChart;

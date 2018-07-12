@@ -26,13 +26,12 @@ class OrganizationHealth extends React.Component {
       params: {
         projects: [],
         environments: [],
-        daterange: '7d',
+        period: '7d',
       },
     };
   }
 
   updateParams = obj => {
-    console.log('update params', obj);
     this.setState(state => ({
       ...state,
       params: {
@@ -42,16 +41,16 @@ class OrganizationHealth extends React.Component {
     }));
   };
 
-  handleUpdateProjects = projects => {
+  handleChangeProjects = projects => {
     this.updateParams({projects});
   };
 
-  handleUpdateEnvironments = environments => {
+  handleChangeEnvironments = environments => {
     this.updateParams({environments});
   };
 
-  handleUpdateTime = daterange => {
-    this.updateParams({daterange});
+  handleChangeTime = period => {
+    this.updateParams({period});
   };
 
   render() {
@@ -67,17 +66,24 @@ class OrganizationHealth extends React.Component {
             <HealthNavigationMenu />
             <Content>
               <Header>
-                <MultipleProjectSelectorContainer
+                <MultipleProjectSelector
                   projects={projects}
-                  onUpdate={this.handleUpdateProjects}
+                  value={this.state.params.projects}
+                  onChange={this.handleChangeProjects}
                 />
                 <HeaderSeparator />
-                <MultipleEnvironmentSelectorContainer
+                <MultipleEnvironmentSelector
                   projects={projects}
-                  onUpdate={this.handleUpdateEnvironments}
+                  value={this.state.params.environments}
+                  onChange={this.handleChangeEnvironments}
                 />
                 <HeaderSeparator />
-                <TimeRangeSelectorContainer onUpdate={this.handleUpdateTime} />
+                <TimeRangeSelector
+                  absolute={false}
+                  relative
+                  value={this.state.params.period}
+                  onChange={this.handleChangeTime}
+                />
               </Header>
               <Body>{children}</Body>
             </Content>
@@ -89,59 +95,6 @@ class OrganizationHealth extends React.Component {
 }
 
 export default withOrganization(OrganizationHealth);
-
-class MultipleProjectSelectorContainer extends React.Component {
-  static propTypes = {
-    initialValue: PropTypes.arrayOf(PropTypes.string),
-  };
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      value: props.initialValue || '',
-    };
-  }
-
-  handleChange = value => {
-    this.setState({value});
-  };
-
-  render() {
-    return (
-      <HealthContext.Consumer>
-        {projects => (
-          <MultipleProjectSelector
-            {...this.props}
-            onChange={this.handleChange}
-            value={this.state.value}
-          />
-        )}
-      </HealthContext.Consumer>
-    );
-  }
-}
-
-class MultipleEnvironmentSelectorContainer extends React.Component {
-  render() {
-    return (
-      <HealthContext.Consumer>
-        {environments => (
-          <MultipleEnvironmentSelector {...this.props} value={environments} />
-        )}
-      </HealthContext.Consumer>
-    );
-  }
-}
-
-class TimeRangeSelectorContainer extends React.Component {
-  render() {
-    return (
-      <HealthContext.Consumer>
-        {daterange => <TimeRangeSelector {...this.props} value={daterange} />}
-      </HealthContext.Consumer>
-    );
-  }
-}
 
 const HealthWrapper = styled(Flex)`
   flex: 1;
