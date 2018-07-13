@@ -1,5 +1,4 @@
 import {Flex} from 'grid-emotion';
-import PropTypes from 'prop-types';
 import React from 'react';
 import styled from 'react-emotion';
 
@@ -24,7 +23,7 @@ class OrganizationHealth extends React.Component {
     super(props);
     this.state = {
       params: {
-        projects: [],
+        projects: [1],
         environments: [],
         period: '7d',
       },

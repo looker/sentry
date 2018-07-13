@@ -49,7 +49,7 @@ class HealthRequestWithParams extends React.Component {
     /**
      * List of environments to query
      */
-    environments: PropTypes.arrayof(PropTypes.string),
+    environments: PropTypes.arrayOf(PropTypes.string),
 
     /**
      * Time period in query. Currently only supports relative dates
@@ -58,6 +58,7 @@ class HealthRequestWithParams extends React.Component {
      */
     period: PropTypes.string,
   };
+
   constructor(props) {
     super(props);
     this.state = {

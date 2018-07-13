@@ -10,15 +10,23 @@ export const PanelTable = styled(
   class PanelTableComponent extends React.Component {
     static propTypes = {
       data: SentryTypes.ChartData,
+      /**
+       * The column index where your data starts.
+       * This is used to calculate totals.
+       *
+       * Will not work if you have mixed string/number columns
+       */
+      dataStartIndex: PropTypes.number,
       widths: PropTypes.arrayOf(PropTypes.number),
-      showRowTotal: PropTypes.bool,
-      showColumnTotal: PropTypes.bool,
-      shadeRowPercentage: PropTypes.bool,
       getValue: PropTypes.func,
       renderHeader: PropTypes.func,
       renderBody: PropTypes.func,
       renderHeaderCell: PropTypes.func,
       renderItemCell: PropTypes.func,
+      shadeRowPercentage: PropTypes.bool,
+      showRowTotal: PropTypes.bool,
+      showColumnTotal: PropTypes.bool,
+      columnTotalLabel: PropTypes.string,
     };
 
     static get defaultProps() {
@@ -28,10 +36,25 @@ export const PanelTable = styled(
         </PanelTableHeader>
       );
 
-      const defaultRenderBody = ({widths, data, dataWithTotals, renderRow, ...props}) =>
-        data.map((row, rowIndex) => {
-          let lastCellIndex = row.length - 1;
-          let lastRowIndex = data.length - 1;
+      const defaultRenderBody = ({
+        widths,
+        data,
+        dataTotals,
+        renderRow,
+        showRowTotal,
+        showColumnTotal,
+        columnTotalLabel,
+        ...props
+      }) => {
+        const dataMaybeWithTotals = [
+          ...data,
+          ...(showColumnTotal
+            ? [[columnTotalLabel, ...dataTotals.columnTotals, dataTotals.total]]
+            : []),
+        ];
+
+        return dataMaybeWithTotals.map((row, rowIndex) => {
+          let lastRowIndex = dataMaybeWithTotals.length - 1;
           let isLastRow = rowIndex === lastRowIndex;
           let showBar = !isLastRow;
 
@@ -39,20 +62,24 @@ export const PanelTable = styled(
             <PanelTableRow
               key={rowIndex}
               showBar={showBar}
-              value={dataWithTotals[rowIndex][lastCellIndex + 1]}
-              total={dataWithTotals[lastRowIndex + 1][lastCellIndex + 1]}
+              value={dataTotals.rowTotals[rowIndex]}
+              total={dataTotals.total}
               widths={widths}
             >
               {renderRow({
                 css: {zIndex: showBar ? '2' : undefined},
                 widths,
-                items: row,
+                items: [
+                  ...row,
+                  ...(showRowTotal ? [dataTotals.rowTotals[rowIndex]] : []),
+                ],
                 rowIndex,
                 ...props,
               })}
             </PanelTableRow>
           );
         });
+      };
 
       const defaultRenderRow = ({items, isHeader, rowIndex, renderCell, ...props}) =>
         items.map((item, columnIndex) => {
@@ -95,6 +122,7 @@ export const PanelTable = styled(
       const defaultRenderHeaderCell = defaultRenderItemCell;
 
       return {
+        dataStartIndex: 1,
         getValue: i => i,
         renderHeader: defaultRenderHeader,
         renderBody: defaultRenderBody,
@@ -102,30 +130,30 @@ export const PanelTable = styled(
         renderCell: defaultRenderCell,
         renderHeaderCell: defaultRenderHeaderCell,
         renderItemCell: defaultRenderItemCell,
+        columnTotalLabel: 'Total',
+        rowTotalLabel: 'Total',
       };
     }
 
     // TODO(billy): memoize?
-    getRowsWithTotals(rows) {
-      const {getValue, showColumnTotal} = this.props;
-      const totalRows = rows.length;
-      const totalColumns = !!rows.length ? rows[0].length : 0;
+    getTotals(rows) {
+      const {getValue, dataStartIndex} = this.props;
       const reduceSum = (sum, val) => (sum += getValue(val));
 
-      let columnTotals = [];
-      // deep clone rows
-      let newRows = [...rows.map(row => [...row])];
-
-      for (let i = 0; i < totalRows; i++) {
-        newRows[i].push(rows[i].slice(1).reduce(reduceSum, 0));
-
-        for (let j = 1; j < totalColumns; j++) {
-          columnTotals[j - 1] = (columnTotals[j - 1] || 0) + getValue(rows[i][j]);
-        }
-      }
-
-      newRows.push(['Total', ...columnTotals, columnTotals.reduce(reduceSum, 0)]);
-      return newRows;
+      const rowTotals = rows.map((row, rowIndex) =>
+        row.slice(dataStartIndex).reduce(reduceSum, 0)
+      );
+      const columnTotals = rows.length
+        ? rows[0]
+            .slice(dataStartIndex)
+            .map((r, currentColumn) =>
+              rows.reduce(
+                (sum, row) => (sum += getValue(row[currentColumn + dataStartIndex])),
+                0
+              )
+            )
+        : [];
+      return {rowTotals, columnTotals, total: columnTotals.reduce(reduceSum, 0)};
     }
 
     render() {
@@ -144,10 +172,8 @@ export const PanelTable = styled(
       } = this.props;
 
       // If we need to calculate totals...
-      let dataWithTotals =
-        showRowTotal || showColumnTotal || shadeRowPercentage
-          ? this.getRowsWithTotals(data)
-          : [];
+      let dataTotals =
+        showRowTotal || showColumnTotal || shadeRowPercentage ? this.getTotals(data) : [];
 
       // For better render customization
       let isRenderProp = typeof children === 'function';
@@ -157,7 +183,7 @@ export const PanelTable = styled(
         showRowTotal,
         showColumnTotal,
         shadeRowPercentage,
-        dataWithTotals,
+        dataTotals,
         widths,
         ...props,
       };
@@ -235,7 +261,7 @@ export const PanelTableRow = styled(
   flex: 1;
 `;
 
-export const PanelTableRowBar = styled('div')`
+export const PanelTableRowBar = styled(({width, ...props}) => <div {...props} />)`
   position: absolute;
   top: 0;
   bottom: 0;

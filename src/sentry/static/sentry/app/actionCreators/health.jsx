@@ -9,7 +9,7 @@ export const doHealthRequest = (
 
   return api.requestPromise(`${BASE_URL(organization)}${path}`, {
     query: {
-      period,
+      startPeriod: period,
       project: projects,
     },
   });
