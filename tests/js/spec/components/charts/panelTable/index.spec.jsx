@@ -70,4 +70,37 @@ describe('PanelTable', function() {
       })
     );
   });
+
+  it('renders the correct r', function() {
+    const ERROR_TYPE_DATA = [
+      ['TypeError', 50, 40, 30],
+      ['SyntaxError', 40, 30, 20],
+      ['NameError', 15, 15, 15],
+      ['ZeroDivisionError', 20, 10, 0],
+    ];
+    const renderer = jest.fn();
+    mount(
+      <PanelTable
+        title="Error Type"
+        data={ERROR_TYPE_DATA}
+        showRowTotal
+        showColumnTotal
+        shadeRowPercentage
+        widths={[null, 80, 80, 80, 100]}
+      >
+        {renderer}
+      </PanelTable>
+    );
+
+    expect(renderer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: ERROR_TYPE_DATA,
+        dataTotals: {
+          columnTotals: [125, 95, 65],
+          rowTotals: [120, 90, 45, 30],
+          total: 285,
+        },
+      })
+    );
+  });
 });
