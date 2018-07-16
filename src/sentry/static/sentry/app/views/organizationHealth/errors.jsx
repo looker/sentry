@@ -33,9 +33,9 @@ const ERROR_TYPE_DATA = [
 class HealthRequestWithParams extends React.Component {
   static propTypes = {
     /**
-     * Health endpoint (this will use a BASE_URL defined in health actionCreators
+     * Health tag (this will use a BASE_URL defined in health actionCreators
      */
-    endpoint: PropTypes.string.isRequired,
+    tag: PropTypes.string.isRequired,
 
     organization: SentryTypes.Organization.isRequired,
 
@@ -83,14 +83,14 @@ class HealthRequestWithParams extends React.Component {
   }
 
   fetchData() {
-    let {endpoint, api, organization, projects, environments, period} = this.props;
-    doHealthRequest(endpoint, api, {
+    let {tag, api, organization, projects, environments, period} = this.props;
+    doHealthRequest(tag, api, {
       projects,
       environments,
       period,
       organization,
     }).then(({data}) => {
-      console.log('request', endpoint, data);
+      console.log('request', tag, data);
       this.setState({
         data,
       });
@@ -246,7 +246,7 @@ class OrganizationHealthErrors extends React.Component {
             showColumnTotal
             shadeRowPercentage
           />
-          <HealthRequest endpoint="users/">
+          <HealthRequest tag="user">
             {({data, loading}) => (
               <React.Fragment>
                 {!loading && (
@@ -314,7 +314,7 @@ class OrganizationHealthErrors extends React.Component {
         </Flex>
 
         <Flex>
-          <HealthRequest endpoint="releases/">
+          <HealthRequest tag="release">
             {({data, loading}) => (
               <React.Fragment>
                 {!loading && (

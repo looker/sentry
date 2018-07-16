@@ -1,15 +1,16 @@
 const BASE_URL = org => `/organizations/${org.slug}/health/`;
 
 export const doHealthRequest = (
-  path,
+  tag,
   api,
   {organization, projects, environments, period, includePrevious}
 ) => {
   if (!api) return Promise.reject(new Error('API client not available'));
 
-  return api.requestPromise(`${BASE_URL(organization)}${path}`, {
+  return api.requestPromise(`${BASE_URL(organization)}`, {
     query: {
-      startPeriod: period,
+      tag,
+      statsPeriod: period,
       project: projects,
     },
   });
