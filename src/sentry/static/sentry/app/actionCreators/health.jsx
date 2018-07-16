@@ -1,26 +1,20 @@
 const BASE_URL = org => `/organizations/${org.slug}/health/`;
 
 export const doHealthRequest = (
-  tag,
   api,
-  {organization, projects, environments, period, includePrevious}
+  {organization, projects, tag, environments, period, timeseries, includePrevious, topk}
 ) => {
   if (!api) return Promise.reject(new Error('API client not available'));
 
-  return api.requestPromise(`${BASE_URL(organization)}`, {
+  const path = timeseries ? 'graph/' : 'top/';
+
+  return api.requestPromise(`${BASE_URL(organization)}${path}`, {
     query: {
       tag,
+      includePrevious,
       statsPeriod: period,
       project: projects,
+      topk,
     },
   });
 };
-
-/**
- * Fetches number of errors from all `projects` in "period"
- *
- *
- */
-export function getErrorsByRelease(api, params = {}) {
-  return doHealthRequest('releases/', api, params);
-}

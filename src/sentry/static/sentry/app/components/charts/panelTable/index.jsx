@@ -239,6 +239,7 @@ export const PanelTableRow = styled(
        */
       total: PropTypes.number,
     };
+
     render() {
       let {className, showBar, total, value, children, widths} = this.props;
       let barWidth =
@@ -261,6 +262,9 @@ export const PanelTableRow = styled(
   flex: 1;
 `;
 
+/**
+ * Shows relative percentage as width of bar inside of a table's row
+ */
 export const PanelTableRowBar = styled(({width, ...props}) => <div {...props} />)`
   position: absolute;
   top: 0;

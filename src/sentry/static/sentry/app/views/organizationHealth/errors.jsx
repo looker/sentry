@@ -57,6 +57,27 @@ class HealthRequestWithParams extends React.Component {
      * e.g. 24h, 7d, 30d
      */
     period: PropTypes.string,
+
+    /**
+     * Include data for previous period
+     */
+    includePrevious: PropTypes.bool,
+
+    /**
+     * Should we query for timeseries data
+     */
+    timeseries: PropTypes.bool,
+
+    /**
+     * topK value
+     */
+    topk: PropTypes.number,
+  };
+
+  static defaultProps = {
+    period: '7d',
+    includePrevious: true,
+    timeseries: true,
   };
 
   constructor(props) {
@@ -83,14 +104,9 @@ class HealthRequestWithParams extends React.Component {
   }
 
   fetchData() {
-    let {tag, api, organization, projects, environments, period} = this.props;
-    doHealthRequest(tag, api, {
-      projects,
-      environments,
-      period,
-      organization,
-    }).then(({data}) => {
-      console.log('request', tag, data);
+    let {api, ...props} = this.props;
+    doHealthRequest(api, props).then(({data}) => {
+      console.log('request', props, data);
       this.setState({
         data,
       });
@@ -130,10 +146,6 @@ const HealthRequest = withOrganization(
 );
 
 class OrganizationHealthErrors extends React.Component {
-  static propTypes = {
-    organization: SentryTypes.Organization,
-  };
-
   render() {
     let {className} = this.props;
     return (
@@ -171,29 +183,34 @@ class OrganizationHealthErrors extends React.Component {
           >
             <AreaChart />
           </StyledPanelChart>
-          <StyledPanelChart
-            height={200}
-            startDate={START_DATE}
-            title={t('Users')}
-            series={[
-              {
-                name: 'User Session',
-                data: GIVE_DATA(TMPSIZE),
-              },
-              {
-                name: 'Affected',
-                data: GIVE_DATA(TMPSIZE),
-              },
-            ]}
-            lines={[
-              {
-                name: 'Previous Period',
-                data: GIVE_DATA(TMPSIZE),
-              },
-            ]}
-          >
-            <AreaChart />
-          </StyledPanelChart>
+
+          <HealthRequest tag="user" timeseries={true}>
+            {({data, loading}) => (
+              <StyledPanelChart
+                height={200}
+                startDate={START_DATE}
+                title={t('Users')}
+                series={[
+                  {
+                    name: 'User Session',
+                    data: GIVE_DATA(TMPSIZE),
+                  },
+                  {
+                    name: 'Affected',
+                    data: GIVE_DATA(TMPSIZE),
+                  },
+                ]}
+                lines={[
+                  {
+                    name: 'Previous Period',
+                    data: GIVE_DATA(TMPSIZE),
+                  },
+                ]}
+              >
+                <AreaChart />
+              </StyledPanelChart>
+            )}
+          </HealthRequest>
         </Flex>
 
         <Flex>
@@ -246,7 +263,7 @@ class OrganizationHealthErrors extends React.Component {
             showColumnTotal
             shadeRowPercentage
           />
-          <HealthRequest tag="user">
+          <HealthRequest tag="user" timeseries={false}>
             {({data, loading}) => (
               <React.Fragment>
                 {!loading && (
@@ -314,7 +331,7 @@ class OrganizationHealthErrors extends React.Component {
         </Flex>
 
         <Flex>
-          <HealthRequest tag="release">
+          <HealthRequest tag="release" timeseries={false} topk={5}>
             {({data, loading}) => (
               <React.Fragment>
                 {!loading && (
