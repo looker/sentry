@@ -1,4 +1,4 @@
-import {Box} from 'grid-emotion';
+import {Flex, Box} from 'grid-emotion';
 import PropTypes from 'prop-types';
 import React from 'react';
 import styled from 'react-emotion';
@@ -19,10 +19,10 @@ export const PanelTable = styled(
       dataStartIndex: PropTypes.number,
       widths: PropTypes.arrayOf(PropTypes.number),
       getValue: PropTypes.func,
-      renderHeader: PropTypes.func,
+      renderTableHeader: PropTypes.func,
       renderBody: PropTypes.func,
       renderHeaderCell: PropTypes.func,
-      renderItemCell: PropTypes.func,
+      renderDataCell: PropTypes.func,
       shadeRowPercentage: PropTypes.bool,
       showRowTotal: PropTypes.bool,
       showColumnTotal: PropTypes.bool,
@@ -30,9 +30,9 @@ export const PanelTable = styled(
     };
 
     static get defaultProps() {
-      const defaultRenderHeader = ({widths, headers, renderRow, ...props}) => (
+      const defaultRenderTableHeader = ({widths, headers, renderRow, ...props}) => (
         <PanelTableHeader widths={widths}>
-          {renderRow({isHeader: true, widths, items: headers, ...props})}
+          {renderRow({isTableHeader: true, widths, items: headers, ...props})}
         </PanelTableHeader>
       );
 
@@ -81,55 +81,98 @@ export const PanelTable = styled(
         });
       };
 
-      const defaultRenderRow = ({items, isHeader, rowIndex, renderCell, ...props}) =>
-        items.map((item, columnIndex) => {
-          let renderCellProps = {
-            value: item,
-            columnIndex,
-            rowIndex,
-            ...props,
-          };
+      const defaultRenderRow = ({
+        dataStartIndex,
+        css,
+        items,
+        rowHeaders,
+        rowData,
+        isTableHeader,
+        rowIndex,
+        renderCell,
+        renderHeaderCell,
+        renderDataCell,
+        widths,
+        ...props
+      }) => {
+        // items.map((item, columnIndex) => {
+        // let renderCellProps = {
+        // value: item,
+        // columnIndex,
+        // rowIndex,
+        // ...props,
+        // };
 
-          return renderCell(renderCellProps);
-        });
+        // return renderCell(renderCellProps);
+        // });
+
+        return (
+          <Flex flex={1} css={css}>
+            {rowHeaders[rowIndex].map((rowHeaderValue, columnIndex) =>
+              renderHeaderCell({
+                value: rowHeaderValue,
+                columnIndex,
+                width: widths[columnIndex + dataStartIndex],
+                rowIndex,
+                ...props,
+              })
+            )}
+
+            <DataGroup>
+              {rowData[rowIndex].map((rowDataValue, columnIndex) => {
+                let renderCellProps = {
+                  value: rowDataValue,
+                  columnIndex,
+                  rowIndex,
+                  width: widths[columnIndex + dataStartIndex],
+                  justify: 'right',
+                  ...props,
+                };
+
+                return renderDataCell(renderCellProps);
+              })}
+            </DataGroup>
+          </Flex>
+        );
+      };
 
       const defaultRenderCell = p => {
         let {
-          isHeader,
+          isTableHeader,
           justify,
           width,
           rowIndex,
           columnIndex,
           renderHeaderCell,
-          renderItemCell,
+          renderDataCell,
         } = p;
 
         return (
           <Cell justify={justify} width={width} key={`${rowIndex}-${columnIndex}`}>
-            {isHeader ? renderHeaderCell(p) : renderItemCell(p)}
+            {isTableHeader ? renderHeaderCell(p) : renderDataCell(p)}
           </Cell>
         );
       };
 
-      const defaultRenderItemCell = ({
-        isHeader,
+      const defaultRenderDataCell = ({
+        isTableHeader,
         justify,
         value,
         width,
         rowIndex,
         columnIndex,
       }) => value;
-      const defaultRenderHeaderCell = defaultRenderItemCell;
+      const defaultRenderHeaderCell = defaultRenderDataCell;
 
       return {
         dataStartIndex: 1,
         getValue: i => i,
-        renderHeader: defaultRenderHeader,
+        renderTableHeader: defaultRenderTableHeader,
         renderBody: defaultRenderBody,
         renderRow: defaultRenderRow,
         renderCell: defaultRenderCell,
         renderHeaderCell: defaultRenderHeaderCell,
-        renderItemCell: defaultRenderItemCell,
+        renderDataCell: defaultRenderDataCell,
         columnTotalLabel: 'Total',
         rowTotalLabel: 'Total',
       };
@@ -138,8 +181,8 @@ export const PanelTable = styled(
     // TODO(billy): memoize?
     getTotals(rows) {
       const {getValue, dataStartIndex} = this.props;
-      const reduceSum = (sum, val) => (sum += getValue(val));
 
+      const reduceSum = (sum, val) => (sum += getValue(val));
       const rowTotals = rows.map((row, rowIndex) =>
         row.slice(dataStartIndex).reduce(reduceSum, 0)
       );
@@ -153,7 +196,29 @@ export const PanelTable = styled(
               )
             )
         : [];
-      return {rowTotals, columnTotals, total: columnTotals.reduce(reduceSum, 0)};
+
+      return {
+        rowTotals,
+        columnTotals,
+        total: columnTotals.reduce(reduceSum, 0),
+      };
+    }
+
+    /**
+     * Given a set of `data`, and a `dataStartIndex`, split `data` into a list
+     * of `[<rowHeaders>, <rowData>]`.
+     */
+    getSpecificRows() {
+      let {data, dataStartIndex} = this.props;
+
+      return data
+        .map((row, rowIndex) => [row.slice(0, dataStartIndex), row.slice(dataStartIndex)])
+        .reduce(
+          (acc, [rowHeader, rowDataCell]) => {
+            return [[...acc[0], rowHeader], [...acc[1], rowDataCell]];
+          },
+          [[], []]
+        );
     }
 
     render() {
@@ -161,11 +226,12 @@ export const PanelTable = styled(
         className,
         children,
         data,
+        dataStartIndex,
         getValue,
         showRowTotal,
         showColumnTotal,
         shadeRowPercentage,
-        renderHeader,
+        renderTableHeader,
         renderBody,
         widths,
         ...props
@@ -175,15 +241,20 @@ export const PanelTable = styled(
       let dataTotals =
         showRowTotal || showColumnTotal || shadeRowPercentage ? this.getTotals(data) : [];
 
+      let [rowHeaders, rowData] = this.getSpecificRows();
+
       // For better render customization
       let isRenderProp = typeof children === 'function';
       let renderProps = {
         data,
+        dataTotals,
+        rowHeaders,
+        rowData,
+        dataStartIndex,
         getValue,
         showRowTotal,
         showColumnTotal,
         shadeRowPercentage,
-        dataTotals,
         widths,
         ...props,
       };
@@ -194,7 +265,7 @@ export const PanelTable = styled(
             children(renderProps)
           ) : (
             <React.Fragment>
-              {renderHeader(renderProps)}
+              {renderTableHeader(renderProps)}
               {renderBody(renderProps)}
             </React.Fragment>
           )}
@@ -283,4 +354,8 @@ export const Cell = styled(Box)`
   text-overflow: ellipsis;
   ${p => (!p.width ? 'flex: 1' : '')};
   ${p => (p.justify === 'right' ? 'text-align: right' : '')};
+`;
+
+const DataGroup = styled(Flex)`
+  flex-shrink: 0;
 `;

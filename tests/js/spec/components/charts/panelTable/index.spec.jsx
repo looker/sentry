@@ -71,12 +71,12 @@ describe('PanelTable', function() {
     );
   });
 
-  it('renders the correct r', function() {
+  it('divides `data` into "header" and "data" arrays', function() {
     const ERROR_TYPE_DATA = [
-      ['TypeError', 50, 40, 30],
-      ['SyntaxError', 40, 30, 20],
-      ['NameError', 15, 15, 15],
-      ['ZeroDivisionError', 20, 10, 0],
+      ['TypeError', 'project1', 50, 40, 30],
+      ['SyntaxError', 'project2', 40, 30, 20],
+      ['NameError', 'project3', 15, 15, 15],
+      ['ZeroDivisionError', 'project4', 20, 10, 0],
     ];
     const renderer = jest.fn();
     mount(
@@ -86,6 +86,7 @@ describe('PanelTable', function() {
         showRowTotal
         showColumnTotal
         shadeRowPercentage
+        dataStartIndex={2}
         widths={[null, 80, 80, 80, 100]}
       >
         {renderer}
@@ -94,7 +95,13 @@ describe('PanelTable', function() {
 
     expect(renderer).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: ERROR_TYPE_DATA,
+        rowHeaders: [
+          ['TypeError', 'project1'],
+          ['SyntaxError', 'project2'],
+          ['NameError', 'project3'],
+          ['ZeroDivisionError', 'project4'],
+        ],
+        rowData: [[50, 40, 30], [40, 30, 20], [15, 15, 15], [20, 10, 0]],
         dataTotals: {
           columnTotals: [125, 95, 65],
           rowTotals: [120, 90, 45, 30],
