@@ -4,7 +4,7 @@ import React from 'react';
 import styled from 'react-emotion';
 
 import {Panel, PanelHeader, PanelItem} from 'app/components/panels';
-import SentryTypes from 'app/proptypes';
+import SentryTypes from 'app/sentryTypes';
 
 export const PanelTable = styled(
   class PanelTableComponent extends React.Component {
