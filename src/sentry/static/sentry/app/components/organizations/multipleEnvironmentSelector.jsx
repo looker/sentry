@@ -7,7 +7,7 @@ import {t} from 'app/locale';
 import DropdownLink from 'app/components/dropdownLink';
 import Button from 'app/components/buttons/button';
 import MultiSelectField from 'app/components/forms/multiSelectField';
-import SentryTypes from 'app/proptypes';
+import SentryTypes from 'app/sentryTypes';
 
 /**
  * Environment Selector
