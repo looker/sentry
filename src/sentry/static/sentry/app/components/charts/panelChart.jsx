@@ -11,10 +11,6 @@ import theme from 'app/utils/theme';
 const PanelChart = styled(
   class extends React.Component {
     static propTypes = {
-      /**
-       * Height of chart
-       */
-      height: PropTypes.number,
       showLegend: PropTypes.bool,
       title: PropTypes.node,
       series: PropTypes.arrayOf(
@@ -55,9 +51,7 @@ const PanelChart = styled(
               {showLegend && <Legend {...this.props} />}
             </PanelHeader>
           )}
-          <ChartWrapper height={this.props.height}>
-            {React.cloneElement(children, props)}
-          </ChartWrapper>
+          <ChartWrapper>{React.cloneElement(children, props)}</ChartWrapper>
         </Panel>
       );
     }
@@ -70,9 +64,6 @@ const PanelChart = styled(
 export default PanelChart;
 
 const ChartWrapper = styled('div')`
-  padding: ${space(2)} ${space(1)} ${space(1)};
-  max-height: ${p => (p.height ? `${p.height - space(1)}px` : 'auto')};
-  min-height: ${p => (p.height ? `${p.height - space(1)}px` : 'auto')};
   overflow: hidden;
 `;
 
@@ -106,14 +97,15 @@ const Legend = styled(
               </SeriesGroup>
             )}
 
-          {series.map((serie, i) => {
-            return (
-              <SeriesGroup key={serie.name}>
-                <CircleIndicator color={theme.charts.colors[i]} />
-                <SeriesName>{serie.name}</SeriesName>
-              </SeriesGroup>
-            );
-          })}
+          {series &&
+            series.map((serie, i) => {
+              return (
+                <SeriesGroup key={serie.name}>
+                  <CircleIndicator color={theme.charts.colors[i]} />
+                  <SeriesName>{serie.name}</SeriesName>
+                </SeriesGroup>
+              );
+            })}
         </Flex>
       );
     }

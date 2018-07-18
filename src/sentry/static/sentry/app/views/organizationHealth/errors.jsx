@@ -1,5 +1,5 @@
-import {isEqual} from 'lodash';
 import {Box, Flex} from 'grid-emotion';
+import {isEqual} from 'lodash';
 import PropTypes from 'prop-types';
 import React from 'react';
 import moment from 'moment';
@@ -8,13 +8,14 @@ import styled from 'react-emotion';
 import {PanelTable} from 'app/components/charts/panelTable';
 import {doHealthRequest} from 'app/actionCreators/health';
 import {t} from 'app/locale';
-import AreaChart from 'app/components/charts/areaChart';
+import AreaChart, {PieChart} from 'app/components/charts/areaChart';
 import Count from 'app/components/count';
 import HealthContext from 'app/views/organizationHealth/healthContext';
 import IdBadge from 'app/components/idBadge';
 import PanelChart from 'app/components/charts/panelChart';
 import SentryTypes from 'app/sentryTypes';
 import space from 'app/styles/space';
+import theme from 'app/utils/theme';
 import withApi from 'app/utils/withApi';
 import withOrganization from 'app/utils/withOrganization';
 
@@ -219,46 +220,6 @@ class OrganizationHealthErrors extends React.Component {
             headers={['Error type', 'Test', 'Another Test', 'What', 'Total']}
             data={ERROR_TYPE_DATA}
             widths={[null, 80, 80, 80, 100]}
-            renderRow={({
-              css,
-              items,
-              isHeader,
-              rowIndex,
-              renderCell,
-              widths,
-              ...props
-            }) => {
-              const firstCell = items && items.length && items[0];
-              return (
-                <Flex flex={1} css={css}>
-                  <Box flex={1}>
-                    {renderCell({
-                      isHeader,
-                      value: firstCell,
-                      columnIndex: 0,
-                      rowIndex,
-                      ...props,
-                    })}
-                  </Box>
-
-                  <DataGroup>
-                    {items.slice(1).map((item, columnIndex) => {
-                      let renderCellProps = {
-                        isHeader,
-                        value: item,
-                        columnIndex,
-                        rowIndex,
-                        width: widths[columnIndex + 1],
-                        justify: 'right',
-                        ...props,
-                      };
-
-                      return renderCell(renderCellProps);
-                    })}
-                  </DataGroup>
-                </Flex>
-              );
-            }}
             showRowTotal
             showColumnTotal
             shadeRowPercentage
@@ -273,46 +234,6 @@ class OrganizationHealthErrors extends React.Component {
                     widths={[null, 120]}
                     getValue={item =>
                       typeof item === 'number' ? item : item && item.count}
-                    renderRow={({
-                      css,
-                      items,
-                      isHeader,
-                      rowIndex,
-                      renderCell,
-                      widths,
-                      ...props
-                    }) => {
-                      const firstCell = items && items.length && items[0];
-                      return (
-                        <Flex flex={1} css={css}>
-                          <Box flex={1}>
-                            {renderCell({
-                              isHeader,
-                              value: firstCell,
-                              columnIndex: 0,
-                              rowIndex,
-                              ...props,
-                            })}
-                          </Box>
-
-                          <DataGroup>
-                            {items.slice(1).map((item, columnIndex) => {
-                              let renderCellProps = {
-                                isHeader,
-                                value: item,
-                                columnIndex: columnIndex + 1,
-                                rowIndex,
-                                width: widths[columnIndex + 1],
-                                justify: 'right',
-                                ...props,
-                              };
-
-                              return renderCell(renderCellProps);
-                            })}
-                          </DataGroup>
-                        </Flex>
-                      );
-                    }}
                     renderItemCell={({getValue, value, columnIndex}) => {
                       if (columnIndex === 0) {
                         return value.user.id;
@@ -335,72 +256,62 @@ class OrganizationHealthErrors extends React.Component {
             {({data, loading}) => (
               <React.Fragment>
                 {!loading && (
-                  <StyledPanelTable
-                    headers={[t('Errors by Release')]}
-                    data={data.map(row => [row, row])}
-                    widths={[null, 120]}
-                    getValue={item =>
-                      typeof item === 'number' ? item : item && item.count}
-                    renderRow={({
-                      css,
-                      items,
-                      isHeader,
-                      rowIndex,
-                      renderCell,
-                      widths,
-                      ...props
-                    }) => {
-                      const firstCell = items && items.length && items[0];
-                      return (
-                        <Flex flex={1} css={css}>
-                          <Box flex={1}>
-                            {renderCell({
-                              isHeader,
-                              value: firstCell,
-                              columnIndex: 0,
-                              rowIndex,
-                              ...props,
-                            })}
-                          </Box>
-
-                          <DataGroup>
-                            {items.slice(1).map((item, columnIndex) => {
-                              let renderCellProps = {
-                                isHeader,
-                                value: item,
-                                columnIndex: columnIndex + 1,
-                                rowIndex,
-                                width: widths[columnIndex + 1],
-                                justify: 'right',
-                                ...props,
-                              };
-
-                              return renderCell(renderCellProps);
-                            })}
-                          </DataGroup>
-                        </Flex>
-                      );
-                    }}
-                    renderItemCell={({getValue, value, columnIndex}) => {
-                      if (columnIndex === 0) {
-                        return (
-                          <Flex justify="space-between">
-                            <Box flex={1}>{value.release.version}</Box>
-                            <Box>
-                              {value.topProjects.map(p => (
-                                <IdBadge key={p.slug} project={p} />
-                              ))}
-                            </Box>
-                          </Flex>
-                        );
-                      } else {
-                        return <Count value={getValue(value)} />;
-                      }
-                    }}
-                    showRowTotal={false}
-                    showColumnTotal={false}
-                    shadeRowPercentage
-                  />
+                  <React.Fragment>
+                    <StyledPanelTable
+                      headers={[t('Errors by Release')]}
+                      data={data.map(row => [row, row])}
+                      widths={[null, 120]}
+                      getValue={item =>
+                        typeof item === 'number' ? item : item && item.count}
+                      renderItemCell={({getValue, value, columnIndex}) => {
+                        if (columnIndex === 0) {
+                          return (
+                            <Flex justify="space-between">
+                              <Box flex={1}>{value.release.version}</Box>
+                              <Box>
+                                {value.topProjects.map(p => (
+                                  <IdBadge key={p.slug} project={p} />
+                                ))}
+                              </Box>
+                            </Flex>
+                          );
+                        } else {
+                          return <Count value={getValue(value)} />;
+                        }
+                      }}
+                      showRowTotal={false}
+                      showColumnTotal={false}
+                      shadeRowPercentage
+                    />
+                    <StyledPanelChart
+                      height={200}
+                      title={t('Errors By Release')}
+                      showLegend={false}
+                      data={data.map(row => ({
+                        name: row.release.version,
+                        value: row.count,
+                      }))}
+                    >
+                      <Flex>
+                        <Box flex={1} p={2}>
+                          <Legend
+                            data={data.map(row => ({
+                              name: row.release.version,
+                              value: row.count,
+                            }))}
+                          />
+                        </Box>
+                        <Box flex={1}>
+                          <PieChart
+                            data={data.map(row => ({
+                              name: row.release.version,
+                              value: row.count,
+                            }))}
+                          />
+                        </Box>
+                      </Flex>
+                    </StyledPanelChart>
+                  </React.Fragment>
                 )}
               </React.Fragment>
             )}
@@ -455,6 +366,36 @@ const StyledPanelTable = styled(PanelTable)`
   ${getChartMargin};
 `;
 
-const DataGroup = styled(Flex)`
-  flex-shrink: 0;
+class Legend extends React.Component {
+  render() {
+    let {data} = this.props;
+    return (
+      <Flex direction="column">
+        {data.map((item, i) => {
+          return (
+            <LegendRow>
+              <Square
+                size={16}
+                color={theme.charts.colors[i % theme.charts.colors.length]}
+              />
+              <span>{item.name}</span>
+            </LegendRow>
+          );
+        })}
+      </Flex>
+    );
+  }
+}
+
+const Square = styled('div')`
+  width: ${p => p.size}px;
+  height: ${p => p.size}px;
+  border-radius: ${p => p.theme.borderRadius};
+  background-color: ${p => p.color};
+  margin-right: ${space(1)};
+`;
+
+const LegendRow = styled(Flex)`
+  margin: ${space(1)};
+  align-items: center;
 `;
