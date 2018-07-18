@@ -5,7 +5,7 @@ import React from 'react';
 import moment from 'moment';
 import styled from 'react-emotion';
 
-import {PanelTable} from 'app/components/charts/panelTable';
+import {TableChart} from 'app/components/charts/tableChart';
 import {doHealthRequest} from 'app/actionCreators/health';
 import {t} from 'app/locale';
 import AreaChart, {PieChart} from 'app/components/charts/areaChart';
@@ -215,7 +215,7 @@ class OrganizationHealthErrors extends React.Component {
         </Flex>
 
         <Flex>
-          <StyledPanelTable
+          <StyledTableChart
             title="Error Type"
             headers={['Error type', 'Test', 'Another Test', 'What', 'Total']}
             data={ERROR_TYPE_DATA}
@@ -228,18 +228,17 @@ class OrganizationHealthErrors extends React.Component {
             {({data, loading}) => (
               <React.Fragment>
                 {!loading && (
-                  <StyledPanelTable
+                  <StyledTableChart
                     headers={[t('Most Impacted')]}
                     data={data.map(row => [row, row])}
                     widths={[null, 120]}
                     getValue={item =>
                       typeof item === 'number' ? item : item && item.count}
-                    renderItemCell={({getValue, value, columnIndex}) => {
-                      if (columnIndex === 0) {
-                        return value.user.id;
-                      } else {
-                        return <Count value={getValue(value)} />;
-                      }
+                    renderHeaderCell={({getValue, value, columnIndex}) => {
+                      return typeof value === 'string' ? value : value.user.id;
+                    }}
+                    renderDataCell={({getValue, value, columnIndex}) => {
+                      return <Count value={getValue(value)} />;
                     }}
                     showRowTotal={false}
                     showColumnTotal={false}
@@ -257,27 +256,26 @@ class OrganizationHealthErrors extends React.Component {
               <React.Fragment>
                 {!loading && (
                   <React.Fragment>
-                    <StyledPanelTable
+                    <StyledTableChart
                       headers={[t('Errors by Release')]}
                       data={data.map(row => [row, row])}
                       widths={[null, 120]}
                       getValue={item =>
                         typeof item === 'number' ? item : item && item.count}
-                      renderItemCell={({getValue, value, columnIndex}) => {
-                        if (columnIndex === 0) {
-                          return (
-                            <Flex justify="space-between">
-                              <Box flex={1}>{value.release.version}</Box>
-                              <Box>
-                                {value.topProjects.map(p => (
-                                  <IdBadge key={p.slug} project={p} />
-                                ))}
-                              </Box>
-                            </Flex>
-                          );
-                        } else {
-                          return <Count value={getValue(value)} />;
-                        }
+                      renderHeaderCell={({getValue, value, columnIndex}) => {
+                        return (
+                          <Flex justify="space-between">
+                            <Box flex={1}>{value.release.version}</Box>
+                            <Box>
+                              {value.topProjects.map(p => (
+                                <IdBadge key={p.slug} project={p} />
+                              ))}
+                            </Box>
+                          </Flex>
+                        );
+                      }}
+                      renderDataCell={({getValue, value, columnIndex}) => {
+                        return <Count value={getValue(value)} />;
                       }}
                       showRowTotal={false}
                       showColumnTotal={false}
@@ -362,7 +360,7 @@ const StyledPanelChart = styled(PanelChart)`
   ${getChartMargin};
 `;
 
-const StyledPanelTable = styled(PanelTable)`
+const StyledTableChart = styled(TableChart)`
   ${getChartMargin};
 `;
 
