@@ -13,7 +13,7 @@ import Count from 'app/components/count';
 import HealthContext from 'app/views/organizationHealth/healthContext';
 import IdBadge from 'app/components/idBadge';
 import PanelChart from 'app/components/charts/panelChart';
-import SentryTypes from 'app/proptypes';
+import SentryTypes from 'app/sentryTypes';
 import space from 'app/styles/space';
 import withApi from 'app/utils/withApi';
 import withOrganization from 'app/utils/withOrganization';

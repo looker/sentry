@@ -6,7 +6,7 @@ import Feature from 'app/components/feature';
 import HeaderSeparator from 'app/components/organizations/headerSeparator';
 import MultipleEnvironmentSelector from 'app/components/organizations/multipleEnvironmentSelector';
 import MultipleProjectSelector from 'app/components/organizations/multipleProjectSelector';
-import SentryTypes from 'app/proptypes';
+import SentryTypes from 'app/sentryTypes';
 import TimeRangeSelector from 'app/components/organizations/timeRangeSelector';
 import space from 'app/styles/space';
 import withOrganization from 'app/utils/withOrganization';

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import SentryTypes from 'app/proptypes';
+import SentryTypes from 'app/sentryTypes';
 
 /**
  * HoC that provides "organization" from context
