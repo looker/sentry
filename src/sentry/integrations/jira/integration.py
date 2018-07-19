@@ -65,23 +65,35 @@ JIRA_CUSTOM_FIELD_TYPES = {
 
 
 class JiraIntegration(Integration, IssueSyncMixin):
-    def get_project_config(self):
+    def get_organization_config(self):
         configuration = [
             {
-                'name': 'resolve_status',
-                'type': 'choice',
-                'allowEmpty': True,
-                'label': _('Jira Resolved Status'),
-                'placeholder': _('Select a Status'),
-                'help': _('Declares what the linked Jira ticket workflow status should be transitioned to when the Sentry issue is resolved.'),
+                'name': 'sync_status_reverse',
+                'type': 'boolean',
+                'label': _('Sync Status from Jira to Sentry'),
+                'help': _("When a Jira ticket is moved to a done category, it's linked Sentry issue will be resolved. When a Jira ticket is moved out of a Done category, it's linked sentry issue will be unresolved."),
             },
             {
-                'name': 'unresolve_status',
-                'type': 'choice',
-                'allowEmpty': True,
-                'label': _('Jira Un-Resolved Status'),
-                'placeholder': _('Select a Status'),
+                'name': 'sync_status_forward',
+                'type': 'super_multichoice',
+                'label': _('Sync Status from Sentry to Jira'),
                 'help': _('Declares what the linked Jira ticket workflow status should be transitioned to when the Sentry issue is unresolved.'),
+                'addButtonText': _('Add Project'),
+                'addDropdown': {
+                    'emptyMessage': _('All projects configured'),
+                    'noResultsMessage': _('Could not find Jira project'),
+                    'items': [],  # Populated with projects
+                },
+                'mappedColumnLabel': _('Jira Project'),
+                'mappedKeys': ('on_resolve', 'on_unresolve'),
+                'columnLabels': {
+                    'on_resolve': _('When resolved'),
+                    'on_unresolve': _('When unresolved'),
+                },
+                'multiChoices': {
+                    'on_resolve': {'choices': [], 'placeholder': 'Select status'},
+                    'on_unresolve': {'choices': [], 'placeholder': 'Select status'},
+                },
             },
             {
                 'name': 'resolve_when',
@@ -123,18 +135,25 @@ class JiraIntegration(Integration, IssueSyncMixin):
 
         try:
             statuses = [(c['id'], c['name']) for c in client.get_valid_statuses()]
-            configuration[0]['choices'] = statuses
-            configuration[1]['choices'] = statuses
-            configuration[2]['choices'] = statuses
-            configuration[3]['choices'] = statuses
+
+            configuration[1]['multiChoices']['on_resolve']['choices'] = statuses
+            configuration[1]['multiChoices']['on_unresolve']['choices'] = statuses
         except ApiError:
             # TODO(epurkhsier): Maybe disabling the inputs for the resolve
             # statuses is a little heavy handed. Is there something better we
             # can fall back to?
-            configuration[0]['disabled'] = True
-            configuration[1]['disabled'] = True
-            configuration[2]['disabled'] = True
-            configuration[3]['disabled'] = True
+            # TODO: Disable reason
+            pass
+
+        try:
+            projects = [{'value': p['id'], 'label': p['name']} for p in client.get_projects_list()]
+            configuration[1]['addDropdown']['items'] = projects
+        except ApiError:
+            # TODO(epurkhsier): Maybe disabling the inputs for the resolve
+            # statuses is a little heavy handed. Is there something better we
+            # can fall back to?
+            # TODO: Disable reason
+            pass
 
         return configuration
 
@@ -521,7 +540,7 @@ class JiraIntegrationProvider(IntegrationProvider):
     features = frozenset([IntegrationFeatures.ISSUE_SYNC])
 
     can_add = False
-    can_add_project = True
+    can_add_project = False
 
     def get_pipeline_views(self):
         return []
