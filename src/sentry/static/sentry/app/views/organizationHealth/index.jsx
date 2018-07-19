@@ -102,6 +102,7 @@ const HealthWrapper = styled(Flex)`
 const Content = styled(Flex)`
   flex-direction: column;
   flex: 1;
+  overflow: hidden;
 `;
 
 const Header = styled(Flex)`
