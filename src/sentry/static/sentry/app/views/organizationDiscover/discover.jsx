@@ -156,6 +156,8 @@ export default class OrganizationDiscover extends React.Component {
       label: name,
     }));
 
+    const renderChart = !!query.aggregations.length;
+
     return (
       <Discover className="organization-home">
         <Header
@@ -239,7 +241,7 @@ export default class OrganizationDiscover extends React.Component {
             </Flex>
           </Box>
           <Box w={[2 / 3, 2 / 3, 2 / 3, 3 / 4]} pl={2}>
-            {result && <Result result={result} />}
+            {result && <Result result={result} renderChart={renderChart}/>}
           </Box>
         </Flex>
       </Discover>
