@@ -18,10 +18,6 @@ class IssueSyncElement extends React.Component {
     return this.props.externalIssueLink && this.props.externalIssueId;
   }
 
-  handleClick = evt => {
-    return this.props.openModal();
-  };
-
   handleDelete = evt => {
     return this.props.onClose(this.props.externalIssueId);
   };
@@ -67,15 +63,14 @@ class IssueSyncElement extends React.Component {
   }
 
   getLink() {
-    if (this.props.externalIssueLink) {
-      return (
-        <IntegrationLink href={this.props.externalIssueLink}>
-          {this.getText()}
-        </IntegrationLink>
-      );
-    } else if (this.props.openModal) {
-      return <IntegrationLink onClick={this.handleClick}>{this.getText()}</IntegrationLink>
-    }
+    return (
+      <IntegrationLink
+        href={this.props.externalIssueLink}
+        onClick={!this.isLinked() ? this.props.openModal : undefined}
+      >
+        {this.getText()}
+      </IntegrationLink>
+    );
   }
 
   getText() {
@@ -96,11 +91,13 @@ class IssueSyncElement extends React.Component {
           {this.getIcon()}
           {this.getLink()}
         </div>
-        <IconClose
-          src="icon-close"
-          onClick={this.isLinked() ? this.handleDelete : this.handleClick}
-          isLinked={this.isLinked()}
-        />
+        {this.props.openModal && (
+          <IconClose
+            src="icon-close"
+            onClick={this.isLinked() ? this.handleDelete : this.props.openModal}
+            isLinked={this.isLinked()}
+          />
+        )}
       </IssueSyncListElementContainer>
     );
   }
@@ -120,6 +117,7 @@ const IntegrationIcon = styled(InlineSvg)`
   color: ${p => p.theme.gray4};
   width: ${space(3)};
   height: ${space(3)};
+  cursor: pointer;
 `;
 
 const IntegrationLink = styled('a')`
@@ -128,6 +126,7 @@ const IntegrationLink = styled('a')`
   margin-left: ${space(1)};
   color: ${p => p.theme.gray4};
   border-bottom: 1px solid ${p => p.theme.gray4};
+  cursor: pointer;
 
   &,
   &:hover {
@@ -139,6 +138,7 @@ const IconClose = styled(InlineSvg)`
   height: 1.25rem;
   color: ${p => p.theme.gray4};
   transition: 0.2s transform;
+  cursor: pointer;
   ${p => (p.isLinked ? '' : 'transform: rotate(45deg) scale(0.75);')};
 `;
 
