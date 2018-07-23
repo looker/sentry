@@ -106,12 +106,19 @@ storiesOf('Forms/Fields/New', module)
           placeholder="Type here to show the return button"
           showReturnButton
         />
-        <TextField
+        <textfield
           name="textfieldflexiblecontrol"
-          label="Text Field With Flexible Control State Size"
-          placeholder="Type text and then delete it"
+          label="text field with flexible control state size"
+          placeholder="type text and then delete it"
           required
-          flexibleControlStateSize
+          flexiblecontrolstatesize
+        />
+        <textfield
+          name="textfielddisabled"
+          label="text field with disabled reason"
+          placeholder="I am disabled"
+          disabled
+          disabledReason="This is the reason this field is disabled"
         />
       </Form>
     ))
